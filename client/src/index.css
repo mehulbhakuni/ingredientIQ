@@ -1,0 +1,79 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'DM Sans', sans-serif;
+    background-color: #111a11;
+    color: #f0f4f0;
+    -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth;
+  }
+
+  * {
+    box-sizing: border-box;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-surface-50 border border-surface-200 rounded-3xl;
+  }
+
+  .card-dark {
+    @apply bg-surface-800 border border-surface-800 rounded-3xl;
+  }
+
+  .btn-primary {
+    @apply bg-brand-500 text-white font-body font-medium rounded-2xl
+           px-6 py-4 w-full text-[15px] active:scale-95 transition-all duration-150
+           disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+
+  .btn-secondary {
+    @apply bg-surface-100 text-surface-800 font-body font-medium rounded-2xl
+           px-6 py-4 w-full text-[15px] active:scale-95 transition-all duration-150;
+  }
+
+  .input-field {
+    @apply bg-surface-100 border border-surface-200 rounded-2xl px-4 py-3
+           text-surface-800 placeholder-surface-200 font-body text-[15px]
+           focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20
+           transition-all w-full;
+  }
+
+  .tag {
+    @apply inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-body font-medium;
+  }
+
+  .section-label {
+    @apply text-xs font-mono font-medium uppercase tracking-widest text-surface-200/60;
+  }
+}
+
+/* Scan overlay animation */
+.scan-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #22c55e, transparent);
+  animation: scanLine 2s ease-in-out infinite;
+  box-shadow: 0 0 8px #22c55e88;
+}
+
+@keyframes scanLine {
+  0%, 100% { top: 10%; }
+  50% { top: 88%; }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #2a3a2a; border-radius: 2px; }
+
+/* Safe area for phones */
+.safe-bottom { padding-bottom: max(1.5rem, env(safe-area-inset-bottom)); }
+.safe-top { padding-top: max(1rem, env(safe-area-inset-top)); }
