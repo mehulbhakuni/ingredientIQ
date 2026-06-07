@@ -8,6 +8,7 @@ import Profile from "./pages/Profile";
 import Scan    from "./pages/Scan";
 import Result  from "./pages/Result";
 import History from "./pages/History";
+import ContributeProduct from "./pages/ContributeProduct";
 
 function Protected({ children }) {
   const { user, loading } = useAuth();
@@ -30,6 +31,15 @@ export default function App() {
         <Route path="/scan"     element={<Protected><Scan /></Protected>} />
         <Route path="/result"   element={<Protected><Result /></Protected>} />
         <Route path="/history"  element={<Protected><History /></Protected>} />
+
+        <Route
+  path="/contribute"
+  element={
+    <Protected>
+      <ContributeProduct />
+    </Protected>
+  }
+/>
       </Routes>
     </Layout>
   );

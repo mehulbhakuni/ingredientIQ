@@ -16,7 +16,12 @@ async function request(path, options = {}) {
     headers: { ...authHeaders(), ...(options.headers || {}) },
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.error || "Request failed.");
+  if (!res.ok) {
+    const err = new Error(data.error || "Request failed.");
+    if (data.notFound) err.notFound = true;
+    if (data.product)  err.product  = data.product;
+    throw err;
+  }
   return data;
 }
 
@@ -33,51 +38,51 @@ export const updateProfile = (profile) =>
   request("/auth/profile", { method: "PUT", body: JSON.stringify(profile) });
 
 // ── Analyze ───────────────────────────────────────────────
-// payload: { ingredients, scanType, productName?, brandName?, barcode?, imageUrl? }
 export const analyzeIngredients = (payload) =>
   request("/analyze", { method: "POST", body: JSON.stringify(
     typeof payload === "string" ? { ingredients: payload } : payload
   )});
 
-// ── Open Food Facts barcode lookup (client-side, no backend) ──
+// ── Products / barcode lookup ─────────────────────────────
+// Now routes through our backend which handles the priority lookup:
+//   1. IngredientIQ database
+//   2. Open Food Facts (auto-saves on hit)
+//   3. 404 notFound
 export async function lookupBarcode(barcode) {
-  const url = `https://world.openfoodfacts.org/api/v0/product/${barcode}.json`;
-  let res;
   try {
-    res = await fetch(url, { headers: { "User-Agent": "IngredientIQ/1.0" } });
-  } catch {
-    throw new Error("Network error — could not reach Open Food Facts.");
-  }
-
-  if (!res.ok) throw new Error("Open Food Facts unavailable. Try again later.");
-
-  const data = await res.json();
-
-  if (data.status === 0 || !data.product) {
-    const err = new Error("Product not found in database.");
-    err.notFound = true;
+    const data = await request(`/products/${encodeURIComponent(barcode)}`);
+    // Backend returns { product, foundIn }
+    // Normalise to the shape BarcodeScanner expects
+    return {
+      barcode:     data.product.barcode,
+      productName: data.product.productName,
+      brandName:   data.product.brandName,
+      ingredients: data.product.ingredients,
+      imageUrl:    data.product.imageUrl,
+      allergens:   data.product.allergens || [],
+      nutriments:  data.product.nutriments || {},
+      source:      data.product.source,
+      foundIn:     data.foundIn,
+    };
+  } catch (err) {
+    // Re-throw with notFound flag so BarcodeScanner can show contribute UI
+    if (err.notFound) {
+      const e = new Error("Product not found in database.");
+      e.notFound = true;
+      throw e;
+    }
     throw err;
   }
-
-  const p = data.product;
-  const ingredients = p.ingredients_text || p.ingredients_text_en || "";
-
-  if (!ingredients.trim()) {
-    const err = new Error("Product found but has no ingredient data.");
-    err.notFound = true;
-    throw err;
-  }
-
-  return {
-    barcode,
-    productName: [p.product_name, p.product_name_en].find(Boolean)?.trim() || "Unknown Product",
-    brandName:   p.brands?.split(",")[0]?.trim() || "",
-    ingredients: ingredients.trim(),
-    imageUrl:    p.image_front_url || p.image_url || "",
-    allergens:   p.allergens_tags || [],
-    nutriments:  p.nutriments || {},
-  };
 }
+
+// ── Product contribution ──────────────────────────────────
+export const submitProduct = (payload) =>
+  request("/products", {
+    method: "POST",
+    body: JSON.stringify(payload),
+    // Override Content-Type limit — images make this large
+    headers: { ...authHeaders() },
+  });
 
 // ── Scans / history ───────────────────────────────────────
 export const getScans   = ()    => request("/scans");

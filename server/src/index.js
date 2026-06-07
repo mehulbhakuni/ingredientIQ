@@ -19,7 +19,8 @@ const mongoose  = require("mongoose");
 
 const authRoute    = require("./routes/auth");
 const analyzeRoute = require("./routes/analyze");
-const scansRoute   = require("./routes/scans");
+const scansRoute    = require("./routes/scans");
+const productsRoute = require("./routes/products");
 
 const app  = express();
 const PORT = process.env.PORT || 5000;
@@ -40,7 +41,7 @@ app.use(helmet({
 }));
 app.disable("x-powered-by"); // belt-and-suspenders — helmet does this too
 
-app.use(express.json({ limit: "2mb" }));
+app.use(express.json({ limit: "10mb" }));
 
 // ── CORS whitelist ────────────────────────────────────────
 // Origins are read from ALLOWED_ORIGINS env var (comma-separated).
@@ -91,7 +92,8 @@ app.use("/api/analyze", analyzeLimiter); // stacked — analyze hits BOTH limite
 // ── Routes ────────────────────────────────────────────────
 app.use("/api/auth",    authRoute);
 app.use("/api/analyze", analyzeRoute);
-app.use("/api/scans",   scansRoute);
+app.use("/api/scans",    scansRoute);
+app.use("/api/products", productsRoute);
 
 app.get("/health", (_, res) => res.json({ status: "ok" }));
 
