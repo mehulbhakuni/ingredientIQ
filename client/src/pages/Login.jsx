@@ -8,8 +8,8 @@ export default function Login() {
   const navigate = useNavigate();
   const { saveAuth } = useAuth();
 
-  const [form, setForm]     = useState({ email: "", password: "" });
-  const [error, setError]   = useState("");
+  const [form, setForm]       = useState({ email: "", password: "" });
+  const [error, setError]     = useState("");
   const [loading, setLoading] = useState(false);
 
   const handle = (e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
@@ -20,7 +20,6 @@ export default function Login() {
     try {
       const { token, user } = await login(form.email, form.password);
       saveAuth(token, user);
-      // Go to profile setup if no profile yet, else scan
       const hasProfile = user.profile?.conditions?.length || user.profile?.allergies?.length || user.profile?.diets?.length;
       navigate(hasProfile ? "/scan" : "/profile", { replace: true });
     } catch (err) {
@@ -43,21 +42,15 @@ export default function Login() {
       <div className="flex flex-col gap-4 mb-6">
         <div>
           <label className="section-label block mb-2">Email</label>
-          <input
-            name="email" type="email" className="input-field"
-            placeholder="you@email.com"
-            value={form.email} onChange={handle}
-            onKeyDown={(e) => e.key === "Enter" && submit()}
-          />
+          <input name="email" type="email" className="input-field"
+            placeholder="you@email.com" value={form.email} onChange={handle}
+            onKeyDown={(e) => e.key === "Enter" && submit()} />
         </div>
         <div>
           <label className="section-label block mb-2">Password</label>
-          <input
-            name="password" type="password" className="input-field"
-            placeholder="••••••••"
-            value={form.password} onChange={handle}
-            onKeyDown={(e) => e.key === "Enter" && submit()}
-          />
+          <input name="password" type="password" className="input-field"
+            placeholder="••••••••" value={form.password} onChange={handle}
+            onKeyDown={(e) => e.key === "Enter" && submit()} />
         </div>
       </div>
 
@@ -67,9 +60,10 @@ export default function Login() {
         </div>
       )}
 
-      <button onClick={submit} disabled={loading} className="btn-primary flex items-center justify-center gap-2 mb-4">
+      <button onClick={submit} disabled={loading}
+        className="btn-primary flex items-center justify-center gap-2 mb-4">
         {loading ? <Loader2 size={18} className="animate-spin" /> : <LogIn size={18} />}
-        {loading ? "Signing in…" : "Sign In"}
+        {loading ? "Signing in… (first load may take 30s)" : "Sign In"}
       </button>
 
       <p className="text-center text-[13px] font-mono text-surface-200/30">

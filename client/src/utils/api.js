@@ -39,33 +39,29 @@ export const updateProfile = (profile) =>
 
 // ── Analyze ───────────────────────────────────────────────
 export const analyzeIngredients = (payload) =>
-  request("/analyze", { method: "POST", body: JSON.stringify(
-    typeof payload === "string" ? { ingredients: payload } : payload
-  )});
+  request("/analyze", {
+    method: "POST",
+    body: JSON.stringify(
+      typeof payload === "string" ? { ingredients: payload } : payload
+    ),
+  });
 
 // ── Products / barcode lookup ─────────────────────────────
-// Now routes through our backend which handles the priority lookup:
-//   1. IngredientIQ database
-//   2. Open Food Facts (auto-saves on hit)
-//   3. 404 notFound
 export async function lookupBarcode(barcode) {
   try {
     const data = await request(`/products/${encodeURIComponent(barcode)}`);
-    // Backend returns { product, foundIn }
-    // Normalise to the shape BarcodeScanner expects
     return {
       barcode:     data.product.barcode,
       productName: data.product.productName,
       brandName:   data.product.brandName,
       ingredients: data.product.ingredients,
       imageUrl:    data.product.imageUrl,
-      allergens:   data.product.allergens || [],
+      allergens:   data.product.allergens  || [],
       nutriments:  data.product.nutriments || {},
       source:      data.product.source,
       foundIn:     data.foundIn,
     };
   } catch (err) {
-    // Re-throw with notFound flag so BarcodeScanner can show contribute UI
     if (err.notFound) {
       const e = new Error("Product not found in database.");
       e.notFound = true;
@@ -79,12 +75,10 @@ export async function lookupBarcode(barcode) {
 export const submitProduct = (payload) =>
   request("/products", {
     method: "POST",
-    body: JSON.stringify(payload),
-    // Override Content-Type limit — images make this large
-    headers: { ...authHeaders() },
+    body:   JSON.stringify(payload),
   });
 
 // ── Scans / history ───────────────────────────────────────
-export const getScans   = ()    => request("/scans");
-export const deleteScan = (id)  => request(`/scans/${id}`, { method: "DELETE" });
-export const clearScans = ()    => request("/scans", { method: "DELETE" });
+export const getScans   = ()   => request("/scans");
+export const deleteScan = (id) => request(`/scans/${id}`, { method: "DELETE" });
+export const clearScans = ()   => request("/scans",       { method: "DELETE" });

@@ -8,7 +8,6 @@ import { useOCR } from "../hooks/useOCR";
 import { submitProduct, analyzeIngredients } from "../utils/api";
 import { useAuth } from "../context/AuthContext";
 
-// ── Image upload field ────────────────────────────────────
 function ImageUploadField({ label, hint, value, onChange, id }) {
   const inputRef = useRef(null);
 
@@ -26,14 +25,11 @@ function ImageUploadField({ label, hint, value, onChange, id }) {
       <p className="section-label mb-2">{label}</p>
       <input ref={inputRef} type="file" accept="image/*" capture="environment"
         className="hidden" onChange={handleFile} id={id} />
-
       {value ? (
         <div className="relative rounded-2xl overflow-hidden bg-surface-800 border border-brand-500/20">
           <img src={value} alt={label} className="w-full h-36 object-cover" />
-          <button
-            onClick={() => onChange("")}
-            className="absolute top-2 right-2 w-8 h-8 rounded-xl bg-surface-900/80 flex items-center justify-center"
-          >
+          <button onClick={() => onChange("")}
+            className="absolute top-2 right-2 w-8 h-8 rounded-xl bg-surface-900/80 flex items-center justify-center">
             <X size={14} className="text-surface-200" />
           </button>
           <div className="absolute bottom-2 left-2">
@@ -43,11 +39,9 @@ function ImageUploadField({ label, hint, value, onChange, id }) {
           </div>
         </div>
       ) : (
-        <button
-          onClick={() => inputRef.current?.click()}
+        <button onClick={() => inputRef.current?.click()}
           className="w-full h-28 rounded-2xl border-2 border-dashed border-surface-700 hover:border-brand-500/40
-                     flex flex-col items-center justify-center gap-2 transition-colors"
-        >
+                     flex flex-col items-center justify-center gap-2 transition-colors">
           <Upload size={20} className="text-surface-200/30" />
           <span className="text-[12px] font-mono text-surface-200/30">{hint}</span>
         </button>
@@ -56,14 +50,12 @@ function ImageUploadField({ label, hint, value, onChange, id }) {
   );
 }
 
-// ── Main page ─────────────────────────────────────────────
 export default function ContributeProduct() {
   const navigate  = useNavigate();
   const location  = useLocation();
   const { user }  = useAuth();
   const { extractText, status: ocrStatus, progress } = useOCR();
 
-  // Pre-fill barcode if coming from BarcodeScanner notFound state
   const prefillBarcode = location.state?.barcode || "";
 
   const [form, setForm] = useState({
@@ -84,7 +76,6 @@ export default function ContributeProduct() {
   const handleField = (field) => (e) =>
     setForm((f) => ({ ...f, [field]: e.target.value }));
 
-  // Run OCR on the ingredient image
   const runOCR = useCallback(async () => {
     if (!ingredientImage) return;
     setError("");
@@ -97,7 +88,6 @@ export default function ContributeProduct() {
     }
   }, [ingredientImage, extractText]);
 
-  // Submit the product, then immediately analyze it
   const handleSubmit = async () => {
     if (!form.barcode.trim())     { setError("Barcode is required."); return; }
     if (!form.productName.trim()) { setError("Product name is required."); return; }
@@ -106,7 +96,6 @@ export default function ContributeProduct() {
     setError(""); setSubmitting(true);
 
     try {
-      // 1. Save product to our database
       const { product } = await submitProduct({
         barcode:             form.barcode.trim(),
         productName:         form.productName.trim(),
@@ -119,18 +108,12 @@ export default function ContributeProduct() {
       setSubmitted(true);
       setSubmitting(false);
 
-      // 2. Check if user has a profile — if yes, auto-analyze
       const hasProfile = user?.profile?.conditions?.length ||
                          user?.profile?.allergies?.length  ||
                          user?.profile?.diets?.length;
 
-      if (!hasProfile) {
-        // No profile — go to scan page
-        navigate("/scan");
-        return;
-      }
+      if (!hasProfile) { navigate("/scan"); return; }
 
-      // 3. Analyze the contributed product
       setAnalyzing(true);
       try {
         const result = await analyzeIngredients({
@@ -139,7 +122,7 @@ export default function ContributeProduct() {
           productName: product.productName,
           brandName:   product.brandName,
           barcode:     product.barcode,
-          imageUrl:    product.imageUrl || "",
+          imageUrl:    "",  // never send base64 data URIs to AI endpoint
         });
         navigate("/result", {
           state: {
@@ -148,7 +131,6 @@ export default function ContributeProduct() {
           },
         });
       } catch {
-        // Analysis failed — still contributed successfully, just go to scan
         navigate("/scan");
       }
     } catch (err) {
@@ -160,7 +142,6 @@ export default function ContributeProduct() {
   const isOCRing  = ocrStatus === "loading";
   const canSubmit = form.barcode && form.productName && form.ingredients && !submitting && !analyzing;
 
-  // ── Submitted state (brief) ───────────────────────────────
   if (submitted && !analyzing) return (
     <div className="min-h-screen flex flex-col items-center justify-center px-5 gap-6">
       <div className="w-20 h-20 rounded-3xl bg-brand-500/10 flex items-center justify-center">
@@ -168,9 +149,7 @@ export default function ContributeProduct() {
       </div>
       <div className="text-center">
         <h2 className="font-display text-[28px] text-surface-50 mb-2">Product Added!</h2>
-        <p className="font-body text-[14px] text-surface-200/50">
-          Thank you for contributing to IngredientIQ.
-        </p>
+        <p className="font-body text-[14px] text-surface-200/50">Thank you for contributing to IngredientIQ.</p>
       </div>
       <Loader2 size={20} className="animate-spin text-brand-400" />
       <p className="text-[12px] font-mono text-surface-200/30">Analyzing for you…</p>
@@ -179,7 +158,6 @@ export default function ContributeProduct() {
 
   return (
     <div className="px-5 pt-12 pb-10 min-h-screen">
-      {/* Header */}
       <button onClick={() => navigate(-1)}
         className="flex items-center gap-1.5 text-[13px] font-mono text-surface-200/40 hover:text-brand-400 transition-colors mb-8 -ml-1">
         <ChevronLeft size={16} /> Back
@@ -192,72 +170,45 @@ export default function ContributeProduct() {
           </div>
           <span className="section-label">Product not in database</span>
         </div>
-        <h2 className="font-display text-[28px] text-surface-50 leading-tight mb-2">
-          Add this product
-        </h2>
+        <h2 className="font-display text-[28px] text-surface-50 leading-tight mb-2">Add this product</h2>
         <p className="font-body text-[13px] text-surface-200/40 leading-relaxed">
           Help improve IngredientIQ by adding products that aren't in the database yet.
-          Your contribution helps everyone.
         </p>
       </div>
 
       <div className="flex flex-col gap-5">
-
-        {/* Barcode — pre-filled if coming from scanner */}
         <div>
           <label className="section-label block mb-2">Barcode *</label>
           <input className="input-field font-mono"
             placeholder="e.g. 8901234567890"
             value={form.barcode}
             onChange={handleField("barcode")}
-            readOnly={!!prefillBarcode} // lock if pre-filled from scanner
+            readOnly={!!prefillBarcode}
           />
           {prefillBarcode && (
-            <p className="text-[11px] font-mono text-brand-400/60 mt-1">
-              ✓ Pre-filled from barcode scan
-            </p>
+            <p className="text-[11px] font-mono text-brand-400/60 mt-1">✓ Pre-filled from barcode scan</p>
           )}
         </div>
 
-        {/* Product name */}
         <div>
           <label className="section-label block mb-2">Product Name *</label>
-          <input className="input-field"
-            placeholder="e.g. Kellogg's Corn Flakes"
-            value={form.productName}
-            onChange={handleField("productName")}
-          />
+          <input className="input-field" placeholder="e.g. Kellogg's Corn Flakes"
+            value={form.productName} onChange={handleField("productName")} />
         </div>
 
-        {/* Brand name */}
         <div>
           <label className="section-label block mb-2">Brand Name</label>
-          <input className="input-field"
-            placeholder="e.g. Kellogg's"
-            value={form.brandName}
-            onChange={handleField("brandName")}
-          />
+          <input className="input-field" placeholder="e.g. Kellogg's"
+            value={form.brandName} onChange={handleField("brandName")} />
         </div>
 
-        {/* Front image */}
-        <ImageUploadField
-          id="front-image"
-          label="Front Product Image"
-          hint="Tap to take photo or upload"
-          value={frontImage}
-          onChange={setFrontImage}
-        />
+        <ImageUploadField id="front-image" label="Front Product Image"
+          hint="Tap to take photo or upload" value={frontImage} onChange={setFrontImage} />
 
-        {/* Ingredient image + OCR */}
         <div>
-          <ImageUploadField
-            id="ingredient-image"
-            label="Ingredients Label Image"
-            hint="Photo of the ingredient list"
-            value={ingredientImage}
-            onChange={(v) => { setIngredientImage(v); setOcrDone(false); }}
-          />
-
+          <ImageUploadField id="ingredient-image" label="Ingredients Label Image"
+            hint="Photo of the ingredient list" value={ingredientImage}
+            onChange={(v) => { setIngredientImage(v); setOcrDone(false); }} />
           {ingredientImage && !ocrDone && (
             <button onClick={runOCR} disabled={isOCRing}
               className="btn-primary mt-3 flex items-center justify-center gap-2 text-[14px] py-3">
@@ -268,7 +219,6 @@ export default function ContributeProduct() {
           )}
         </div>
 
-        {/* Ingredients text — editable after OCR or manual entry */}
         <div>
           <div className="flex items-center justify-between mb-2">
             <label className="section-label">Ingredients Text *</label>
@@ -278,23 +228,18 @@ export default function ContributeProduct() {
               </span>
             )}
           </div>
-          <textarea
-            className="input-field min-h-[120px] resize-none text-[13px] leading-relaxed"
+          <textarea className="input-field min-h-[120px] resize-none text-[13px] leading-relaxed"
             placeholder="Water, Sugar, Modified Corn Starch, Salt, Natural Flavors..."
-            value={form.ingredients}
-            onChange={handleField("ingredients")}
-          />
+            value={form.ingredients} onChange={handleField("ingredients")} />
           <p className="text-[11px] font-mono text-surface-200/25 mt-1">
             You can edit the extracted text or type it manually.
           </p>
         </div>
 
-        {/* Privacy note */}
         <div className="bg-surface-800 rounded-2xl px-4 py-3 flex items-start gap-3">
           <AlertTriangle size={14} className="text-amber-400/60 flex-shrink-0 mt-0.5" />
           <p className="text-[12px] font-mono text-surface-200/30 leading-relaxed">
-            Contributed products are reviewed before appearing for all users.
-            Your name is not shown publicly.
+            Contributed products are reviewed before appearing for all users. Your name is not shown publicly.
           </p>
         </div>
 
@@ -304,18 +249,14 @@ export default function ContributeProduct() {
           </div>
         )}
 
-        {/* Submit */}
         <button onClick={handleSubmit} disabled={!canSubmit}
           className="btn-primary flex items-center justify-center gap-2">
           {submitting || analyzing
-            ? <><Loader2 size={18} className="animate-spin" />
-                {submitting ? "Saving product…" : "Analyzing…"}</>
+            ? <><Loader2 size={18} className="animate-spin" />{submitting ? "Saving product…" : "Analyzing…"}</>
             : <><Package size={18} />Submit & Analyze</>}
         </button>
 
-        <p className="text-center text-[11px] font-mono text-surface-200/20">
-          Fields marked * are required
-        </p>
+        <p className="text-center text-[11px] font-mono text-surface-200/20">Fields marked * are required</p>
       </div>
     </div>
   );
