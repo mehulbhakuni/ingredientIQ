@@ -77,3 +77,24 @@
 /* Safe area for phones */
 .safe-bottom { padding-bottom: max(1.5rem, env(safe-area-inset-bottom)); }
 .safe-top { padding-top: max(1rem, env(safe-area-inset-top)); }
+
+/* Home page — phone mockup animations */
+.scan-beam-home {
+  animation: scanBeamHome 2s ease-in-out infinite;
+}
+@keyframes scanBeamHome {
+  0%, 100% { top: 6px; }
+  50%       { top: calc(100% - 6px); }
+}
+
+.animate-float-slow {
+  animation: floatSlow 3.5s ease-in-out infinite;
+}
+.animate-float-mid {
+  animation: floatSlow 2.8s ease-in-out infinite;
+  animation-delay: 0.6s;
+}
+@keyframes floatSlow {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-5px); }
+}
