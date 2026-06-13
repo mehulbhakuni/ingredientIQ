@@ -19,7 +19,15 @@ function TagSelector({ label, options, selected, onChange }) {
           const active = selected.includes(item);
           return (
             <button key={item} onClick={() => toggle(item)}
-              className={`tag transition-all duration-150 ${active ? "bg-brand-500/15 text-brand-400 border border-brand-500/30" : "bg-surface-100 text-surface-800/60 border border-surface-200"}`}>
+              className={`tag transition-all duration-150 text-[12px] ${
+                active
+                  ? "text-brand-400"
+                  : "text-white/40 hover:text-white/60"
+              }`}
+              style={active
+                ? { background:"rgba(34,197,94,0.12)", border:"0.5px solid rgba(34,197,94,0.3)" }
+                : { background:"rgba(255,255,255,0.04)", border:"0.5px solid rgba(255,255,255,0.08)" }
+              }>
               {active && <X size={11} />}{item}
             </button>
           );
@@ -32,14 +40,12 @@ function TagSelector({ label, options, selected, onChange }) {
 export default function Profile() {
   const navigate = useNavigate();
   const { user, logout, refreshUser } = useAuth();
-
   const [conditions, setConditions] = useState(user?.profile?.conditions || []);
   const [allergies,  setAllergies]  = useState(user?.profile?.allergies  || []);
   const [diets,      setDiets]      = useState(user?.profile?.diets      || []);
   const [custom,     setCustom]     = useState(user?.profile?.custom     || "");
   const [saving,     setSaving]     = useState(false);
   const [error,      setError]      = useState("");
-
   const hasAny = conditions.length || allergies.length || diets.length || custom.trim();
 
   const handleSave = async () => {
@@ -48,51 +54,57 @@ export default function Profile() {
       await updateProfile({ conditions, allergies, diets, custom: custom.trim() });
       await refreshUser();
       navigate("/scan");
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setSaving(false);
-    }
+    } catch (err) { setError(err.message); }
+    finally { setSaving(false); }
   };
 
   return (
-    <div className="px-5 pt-12 pb-8">
+    <div className="px-5 pt-10 pb-8 lg:pt-12">
+      {/* Header */}
       <div className="flex items-start justify-between mb-8">
         <div>
           <span className="section-label block mb-2">Health profile</span>
-          <h2 className="font-display text-[32px] text-surface-50 leading-tight">
+          <h2 className="font-display text-[30px] lg:text-[36px] text-white leading-tight">
             {user?.name?.split(" ")[0]}'s profile
           </h2>
-          <p className="text-[13px] font-mono text-surface-200/40 mt-1">{user?.email}</p>
+          <p className="text-[13px] font-mono mt-1" style={{ color:"rgba(255,255,255,0.3)" }}>{user?.email}</p>
         </div>
         <button onClick={() => { logout(); navigate("/"); }}
-          className="flex items-center gap-1.5 text-[12px] font-mono text-surface-200/30 hover:text-red-400 transition-colors mt-2">
+          className="flex items-center gap-1.5 text-[12px] font-mono mt-2 transition-colors hover:text-red-400"
+          style={{ color:"rgba(255,255,255,0.2)" }}>
           <LogOut size={13} /> Sign out
         </button>
       </div>
 
-      <div className="bg-surface-800 rounded-3xl p-5 mb-5">
-        <TagSelector label="Conditions" options={CONDITIONS} selected={conditions} onChange={setConditions} />
-        <TagSelector label="Allergies"  options={ALLERGIES}  selected={allergies}  onChange={setAllergies} />
-        <TagSelector label="Dietary restrictions" options={DIETS} selected={diets} onChange={setDiets} />
-        <div>
-          <p className="section-label mb-3">Anything else?</p>
-          <textarea className="input-field min-h-[90px] resize-none"
-            placeholder="e.g. avoid MSG, low-oxalate diet..."
-            value={custom} onChange={(e) => setCustom(e.target.value)} />
+      {/* On desktop: 2 column layout */}
+      <div className="lg:grid lg:grid-cols-2 lg:gap-6">
+        <div className="glass-card p-5 mb-5 lg:mb-0">
+          <TagSelector label="Conditions" options={CONDITIONS} selected={conditions} onChange={setConditions} />
+          <TagSelector label="Allergies"  options={ALLERGIES}  selected={allergies}  onChange={setAllergies} />
+        </div>
+        <div className="flex flex-col gap-5">
+          <div className="glass-card p-5">
+            <TagSelector label="Dietary restrictions" options={DIETS} selected={diets} onChange={setDiets} />
+            <div>
+              <p className="section-label mb-3">Anything else?</p>
+              <textarea className="input-field min-h-[90px] resize-none"
+                placeholder="e.g. avoid MSG, low-oxalate diet..."
+                value={custom} onChange={(e) => setCustom(e.target.value)} />
+            </div>
+          </div>
+
+          {error && (
+            <div className="px-4 py-3 rounded-2xl" style={{ background:"rgba(239,68,68,0.08)", border:"0.5px solid rgba(239,68,68,0.2)" }}>
+              <p className="text-[13px] font-mono text-red-400">{error}</p>
+            </div>
+          )}
+
+          <button onClick={handleSave} disabled={!hasAny || saving}
+            className="btn-primary flex items-center justify-center gap-2">
+            {saving ? "Saving…" : <><ShieldCheck size={18} />Save Profile<ChevronRight size={16} /></>}
+          </button>
         </div>
       </div>
-
-      {error && (
-        <div className="bg-red-500/10 border border-red-500/20 rounded-2xl px-4 py-3 mb-4">
-          <p className="text-[13px] font-mono text-red-400">{error}</p>
-        </div>
-      )}
-
-      <button onClick={handleSave} disabled={!hasAny || saving}
-        className="btn-primary flex items-center justify-center gap-2">
-        {saving ? "Saving…" : <><ShieldCheck size={18} />Save Profile<ChevronRight size={16} /></>}
-      </button>
     </div>
   );
 }

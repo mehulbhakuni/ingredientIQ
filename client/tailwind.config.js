@@ -5,8 +5,8 @@ export default {
     extend: {
       fontFamily: {
         display: ["'Syne'", "sans-serif"],
-        body: ["'DM Sans'", "sans-serif"],
-        mono: ["'DM Mono'", "monospace"],
+        body:    ["'DM Sans'", "sans-serif"],
+        mono:    ["'DM Mono'", "monospace"],
       },
       colors: {
         brand: {
@@ -24,8 +24,9 @@ export default {
           50:  "#f8faf8",
           100: "#f0f4f0",
           200: "#e2eae2",
-          800: "#1c2a1c",
-          900: "#111a11",
+          700: "#0d1a2a",
+          800: "#0a1628",
+          900: "#060d1a",
         },
       },
       borderRadius: {
@@ -33,24 +34,16 @@ export default {
         "3xl": "1.5rem",
       },
       animation: {
-        "fade-up": "fadeUp 0.4s ease forwards",
+        "fade-up":   "fadeUp 0.4s ease forwards",
         "scan-line": "scanLine 2s ease-in-out infinite",
-        "pulse-ring": "pulseRing 1.5s ease-out infinite",
+        "pulse-ring":"pulseRing 1.5s ease-out infinite",
       },
       keyframes: {
-        fadeUp: {
-          "0%": { opacity: 0, transform: "translateY(12px)" },
-          "100%": { opacity: 1, transform: "translateY(0)" },
-        },
-        scanLine: {
-          "0%,100%": { top: "10%" },
-          "50%": { top: "85%" },
-        },
-        pulseRing: {
-          "0%": { transform: "scale(1)", opacity: 0.6 },
-          "100%": { transform: "scale(1.6)", opacity: 0 },
-        },
+        fadeUp:    { "0%": { opacity: 0, transform: "translateY(12px)" }, "100%": { opacity: 1, transform: "translateY(0)" } },
+        scanLine:  { "0%,100%": { top: "10%" }, "50%": { top: "85%" } },
+        pulseRing: { "0%": { transform: "scale(1)", opacity: 0.6 }, "100%": { transform: "scale(1.6)", opacity: 0 } },
       },
+      backdropBlur: { xs: "2px" },
     },
   },
   plugins: [],

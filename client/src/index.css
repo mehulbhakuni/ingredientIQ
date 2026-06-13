@@ -5,96 +5,110 @@
 @layer base {
   html {
     font-family: 'DM Sans', sans-serif;
-    background-color: #111a11;
+    background-color: #060d1a;
     color: #f0f4f0;
     -webkit-tap-highlight-color: transparent;
     scroll-behavior: smooth;
   }
-
-  * {
-    box-sizing: border-box;
-    -webkit-font-smoothing: antialiased;
-  }
+  * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
 }
 
 @layer components {
-  .card {
-    @apply bg-surface-50 border border-surface-200 rounded-3xl;
+  /* ── Glass card ── */
+  .glass-card {
+    background: rgba(255,255,255,0.04);
+    border: 0.5px solid rgba(255,255,255,0.08);
+    border-radius: 1.5rem;
+    backdrop-filter: blur(12px);
+  }
+  .glass-card-accent {
+    background: rgba(34,197,94,0.05);
+    border: 0.5px solid rgba(34,197,94,0.15);
+    border-radius: 1.5rem;
+    backdrop-filter: blur(12px);
   }
 
-  .card-dark {
-    @apply bg-surface-800 border border-surface-800 rounded-3xl;
-  }
-
+  /* ── Buttons ── */
   .btn-primary {
-    @apply bg-brand-500 text-white font-body font-medium rounded-2xl
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    box-shadow: 0 4px 24px rgba(34,197,94,0.35), inset 0 1px 0 rgba(255,255,255,0.12);
+    @apply text-white font-body font-semibold rounded-2xl
            px-6 py-4 w-full text-[15px] active:scale-95 transition-all duration-150
            disabled:opacity-40 disabled:cursor-not-allowed;
   }
-
+  .btn-primary:hover:not(:disabled) {
+    box-shadow: 0 6px 28px rgba(34,197,94,0.45), inset 0 1px 0 rgba(255,255,255,0.12);
+  }
   .btn-secondary {
-    @apply bg-surface-100 text-surface-800 font-body font-medium rounded-2xl
+    background: rgba(255,255,255,0.05);
+    border: 0.5px solid rgba(255,255,255,0.1);
+    backdrop-filter: blur(8px);
+    @apply text-white/60 font-body font-medium rounded-2xl
            px-6 py-4 w-full text-[15px] active:scale-95 transition-all duration-150;
   }
+  .btn-secondary:hover { background: rgba(255,255,255,0.08); }
 
+  /* ── Inputs ── */
   .input-field {
-    @apply bg-surface-100 border border-surface-200 rounded-2xl px-4 py-3
-           text-surface-800 placeholder-surface-200 font-body text-[15px]
-           focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20
-           transition-all w-full;
+    background: rgba(255,255,255,0.05);
+    border: 0.5px solid rgba(255,255,255,0.1);
+    backdrop-filter: blur(8px);
+    @apply rounded-2xl px-4 py-3 text-white/90 placeholder-white/20
+           font-body text-[15px] focus:outline-none transition-all w-full;
+  }
+  .input-field:focus {
+    border-color: rgba(34,197,94,0.5);
+    box-shadow: 0 0 0 3px rgba(34,197,94,0.1);
   }
 
+  /* ── Tags ── */
   .tag {
     @apply inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[13px] font-body font-medium;
   }
-
   .section-label {
-    @apply text-xs font-mono font-medium uppercase tracking-widest text-surface-200/60;
+    @apply text-xs font-mono font-medium uppercase tracking-widest;
+    color: rgba(255,255,255,0.3);
   }
+
+  /* ── Legacy card aliases (so existing pages still work) ── */
+  .card      { @apply glass-card; }
+  .card-dark { @apply glass-card; }
 }
 
-/* Scan overlay animation */
+/* ── Scan overlay ── */
 .scan-line {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 2px;
+  position: absolute; left: 0; right: 0; height: 2px;
   background: linear-gradient(90deg, transparent, #22c55e, transparent);
   animation: scanLine 2s ease-in-out infinite;
-  box-shadow: 0 0 8px #22c55e88;
+  box-shadow: 0 0 8px rgba(34,197,94,0.5);
 }
+@keyframes scanLine { 0%,100% { top: 10%; } 50% { top: 88%; } }
 
-@keyframes scanLine {
-  0%, 100% { top: 10%; }
-  50% { top: 88%; }
-}
+/* ── Home mockup ── */
+.scan-beam-home { animation: scanBeamHome 2s ease-in-out infinite; }
+@keyframes scanBeamHome { 0%,100% { top: 6px; } 50% { top: calc(100% - 6px); } }
+.animate-float-slow { animation: floatSlow 3.5s ease-in-out infinite; }
+.animate-float-mid  { animation: floatSlow 2.8s ease-in-out infinite; animation-delay: 0.6s; }
+@keyframes floatSlow { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
 
-/* Scrollbar */
+/* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #2a3a2a; border-radius: 2px; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
 
-/* Safe area for phones */
+/* ── Safe areas ── */
 .safe-bottom { padding-bottom: max(1.5rem, env(safe-area-inset-bottom)); }
-.safe-top { padding-top: max(1rem, env(safe-area-inset-top)); }
+.safe-top    { padding-top: max(1rem, env(safe-area-inset-top)); }
 
-/* Home page — phone mockup animations */
-.scan-beam-home {
-  animation: scanBeamHome 2s ease-in-out infinite;
+/* ── Global background orbs ── */
+.bg-orbs::before, .bg-orbs::after { content: ''; position: fixed; border-radius: 50%; pointer-events: none; z-index: 0; }
+.bg-orbs::before {
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(34,197,94,0.08) 0%, transparent 70%);
+  top: -200px; right: -200px;
 }
-@keyframes scanBeamHome {
-  0%, 100% { top: 6px; }
-  50%       { top: calc(100% - 6px); }
-}
-
-.animate-float-slow {
-  animation: floatSlow 3.5s ease-in-out infinite;
-}
-.animate-float-mid {
-  animation: floatSlow 2.8s ease-in-out infinite;
-  animation-delay: 0.6s;
-}
-@keyframes floatSlow {
-  0%, 100% { transform: translateY(0px); }
-  50%       { transform: translateY(-5px); }
+.bg-orbs::after {
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(99,102,241,0.07) 0%, transparent 70%);
+  bottom: 0; left: -100px;
 }
